@@ -3,5 +3,5 @@ package main
 import "fmt"
 
 func main() {
-	fmt.Println(reverse(1534236469))
+	fmt.Println(myAtoi("-20000000000000000000"))
 }
