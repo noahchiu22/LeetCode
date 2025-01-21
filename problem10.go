@@ -2,11 +2,47 @@ package main
 
 import (
 	"fmt"
-	"strings"
 )
 
 func isMatch(s string, p string) bool {
-	checkQueue := []string{}
+	checkQueue, indexQueue := findFixedRune(p)
+
+	fmt.Println(checkQueue)
+	fmt.Println(indexQueue)
+	fmt.Println("s: ", s)
+	fmt.Println("p: ", p)
+	sIndex, pIndex, cIndex := 0, 0, 0
+
+	for sIndex < len(s) && pIndex < len(p) {
+		// if is fixed pattern
+		if indexQueue[cIndex] == pIndex {
+			if s[sIndex] != p[pIndex] {
+				return false
+			}
+			sIndex++
+			pIndex++
+			cIndex++
+			continue
+		}
+
+		// not fixed pattern
+
+		// if match move sIndex
+		if s[sIndex] == p[pIndex] {
+			sIndex++
+		} else {
+			// if not match move pIndex
+			// move 2 because of '*'
+			pIndex += 2
+		}
+	}
+
+	// if not all check return false
+	return sIndex < len(s) || cIndex < len(indexQueue)
+}
+
+// find fixed rune and index
+func findFixedRune(p string) (checkQueue []string, indexQueue []int) {
 	i := len(p) - 1
 	for i >= 0 {
 		// skip rune with '*'
@@ -18,67 +54,42 @@ func isMatch(s string, p string) bool {
 		for j := i; j >= 0; j-- {
 			if j == 0 {
 				checkQueue = append([]string{p[j : i+1]}, checkQueue...)
-				i--
+				indexQueue = append([]int{j}, indexQueue...)
+				i -= (i - j + 1)
 				break
 			}
 			if p[j] != p[j-1] {
 				checkQueue = append([]string{p[j : i+1]}, checkQueue...)
+				indexQueue = append([]int{j}, indexQueue...)
 				i -= (i - j + 1)
 				break
 			}
 		}
 	}
 
-	for _, section := range checkQueue {
-		fmt.Println(section)
-	}
-
-	fmt.Printf("s: %v\n", s)
-	for i := 0; i < len(checkQueue)-1; i++ {
-		fmt.Println("checkQueue[i]: ", checkQueue[i], "checkQueue[i+1]: ", checkQueue[i+1])
-
-		index1 := indexOfNum(s, checkQueue[i], counts(checkQueue[:i], checkQueue[i])+1)
-		index2 := indexOfNum(s, checkQueue[i+1], counts(checkQueue[:i+1], checkQueue[i+1])+1)
-
-		fmt.Println("index1: ", index1, "index2: ", index2)
-		if index1 == -1 || index2 == -1 {
-			return false
-		}
-		if index1 > index2 {
-			return false
-		}
-	}
-
-	return true
-}
-
-// indexOfNum returns the index of the num-th occurrence of substr in s
-func indexOfNum(s, substr string, num int) (index int) {
-	index = strings.Index(s, substr)
-	// end point
-	if num == 1 {
-		return
-	}
-	// if the length of s is less than the length of substr, return -1
-	if len(s) < len(substr) {
-		return -1
-	}
-	// recursive call
-	nextIndex := indexOfNum(s[strings.Index(s, substr)+len(substr):], substr, num-1)
-	// if the next index is -1, return -1
-	if nextIndex == -1 {
-		return -1
-	}
-	// add the length of substr and the next index
-	index += (len(substr) + nextIndex)
-
 	return
 }
 
-func counts[S []E, E comparable](s S, k E) int {
-	h := map[E]int{}
-	for _, v := range s {
-		h[v] = h[v] + 1
-	}
-	return h[k]
-}
+// func gapCheck(s string, p string) bool {
+// 	fmt.Println("gapCheck -----> ", "s: ", s, "p: ", p)
+// 	if len(s) == 0 {
+// 		return true
+// 	}
+// 	if len(p) == 0 {
+// 		return false
+// 	}
+
+// 	pivot := 0
+// 	t := '\n'
+// 	for _, r := range s {
+// 		if t != r {
+// 			pivot = strings.Index(p[pivot:], string(r)) + 1
+// 			if pivot == 0 {
+// 				return false
+// 			}
+// 			t = r
+// 		}
+// 	}
+
+// 	return true
+// }

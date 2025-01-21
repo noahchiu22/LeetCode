@@ -1,7 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+)
 
 func main() {
-	fmt.Println(isMatch("abcccaa", "ab*ccca.*a"))
+	fmt.Println(isMatch("aaa", "ab*a*c*a"))
 }
