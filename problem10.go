@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"strings"
 )
 
 func isMatch(s string, p string) bool {
@@ -21,6 +20,9 @@ func isMatch(s string, p string) bool {
 			// if is fixed pattern
 			if indexQueue[cIndex] == pIndex {
 				fmt.Println("fixed check")
+				if sIndex+len(checkQueue[cIndex]) > len(s) {
+					return false
+				}
 				for i, r := range s[sIndex : sIndex+len(checkQueue[cIndex])] {
 					checkRune := rune(checkQueue[cIndex][i])
 					fmt.Println("r: ", string(r), "checkRune: ", string(checkRune))
@@ -33,38 +35,9 @@ func isMatch(s string, p string) bool {
 				cIndex++
 				continue
 			}
-
-			// not fixed pattern
-			if strings.Contains(checkQueue[cIndex], string(p[pIndex])) || p[pIndex] == '.' {
-				// find duplicate s substring
-				substring := ""
-				checkRune := s[sIndex]
-				for i := sIndex; i < len(s); i++ {
-					if s[i] != checkRune {
-						substring = s[sIndex:i]
-						break
-					}
-					if i == len(s)-1 {
-						substring = s[sIndex:]
-					}
-				}
-
-				fmt.Println("substring: ", substring)
-
-				// !!!!!!!!!!!!!!!!!!!!!!!!不行這樣檢查，有時候是要看substring完的下一筆rune
-				// if len substring < len checkQueue[cIndex] return false
-				if len(substring) < len(checkQueue[cIndex]) {
-					return false
-				}
-
-				sIndex += len(substring)
-				pIndex += (indexQueue[cIndex] + len(checkQueue[cIndex]))
-				cIndex++
-				continue
-			}
 		}
 
-		// not fixed pattern
+		// flexible pattern
 
 		// if match move sIndex
 		if s[sIndex] == p[pIndex] || p[pIndex] == '.' {
