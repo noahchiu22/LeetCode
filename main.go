@@ -5,5 +5,5 @@ import (
 )
 
 func main() {
-	fmt.Println(romanToInt("III"))
+	fmt.Println(longestCommonPrefix([]string{"ab", "a"}))
 }
