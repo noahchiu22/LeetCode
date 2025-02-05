@@ -1,11 +1,9 @@
 package main
 
-import (
-	"sort"
-)
+import "slices"
 
 func threeSum(nums []int) (sets [][]int) {
-	sort.Ints(nums)
+	slices.Sort(nums)
 
 	majorFindedInt := make(map[int]bool)
 
