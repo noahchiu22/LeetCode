@@ -1,111 +1,96 @@
 package main
 
-import (
-	"fmt"
-)
+import "fmt"
 
 func isMatch(s string, p string) bool {
-	checkQueue, indexQueue := findFixedRune(p)
+	fmt.Println("s:", s, "p:", p)
+	type runeProps struct {
+		value      byte
+		isFlexible bool
+		count      int
+	}
 
-	fmt.Println(checkQueue)
-	fmt.Println(indexQueue)
-	fmt.Println("s: ", s)
-	fmt.Println("p: ", p)
-	sIndex, pIndex, cIndex := 0, 0, 0
+	pattern := []runeProps{}
 
-	for sIndex < len(s) && pIndex < len(p) {
-		fmt.Println("sIndex: ", sIndex, "pIndex: ", pIndex)
-
-		if len(indexQueue) > 0 {
-			// if is fixed pattern
-			if indexQueue[cIndex] == pIndex {
-				fmt.Println("fixed check")
-				if sIndex+len(checkQueue[cIndex]) > len(s) {
-					return false
-				}
-				for i, r := range s[sIndex : sIndex+len(checkQueue[cIndex])] {
-					checkRune := rune(checkQueue[cIndex][i])
-					fmt.Println("r: ", string(r), "checkRune: ", string(checkRune))
-					if r != checkRune && checkRune != '.' {
-						return false
-					}
-				}
-				sIndex += len(checkQueue[cIndex])
-				pIndex += len(checkQueue[cIndex])
-				cIndex++
-				continue
-			}
+	// generate pattern
+	i := 0
+	for i < len(p) {
+		tempProps := runeProps{}
+		// if next rune is *
+		if i+1 < len(p) && p[i+1] == '*' {
+			tempProps.isFlexible = true
 		}
 
-		// flexible pattern
-
-		// if match move sIndex
-		if s[sIndex] == p[pIndex] || p[pIndex] == '.' {
-			fmt.Println("s move")
-			sIndex++
+		// check duplicate rune
+		if len(pattern) > 0 &&
+			p[i] == pattern[len(pattern)-1].value &&
+			tempProps.isFlexible == pattern[len(pattern)-1].isFlexible {
+			pattern[len(pattern)-1].count++
 		} else {
-			fmt.Println("p move")
-			// if not match move pIndex
-			// move 2 because of '*'
-			pIndex += 2
+			// new rune
+			tempProps.value = p[i]
+			tempProps.count = 1
+
+			pattern = append(pattern, tempProps)
+		}
+
+		i++
+
+		// skip *
+		if tempProps.isFlexible {
+			i++
 		}
 	}
 
-	fmt.Println("sIndex: ", sIndex, "len(s): ", len(s))
-	fmt.Println("cIndex: ", cIndex, "len(indexQueue): ", len(indexQueue))
-	// if all check return true, not all check return false
-	return sIndex >= len(s) && cIndex >= len(indexQueue)
-}
+	for _, item := range pattern {
+		fmt.Println("value:", string(item.value), "notNeedToCount:", item.isFlexible, "count:", item.count)
+	}
 
-// find fixed rune and index
-func findFixedRune(p string) (checkQueue []string, indexQueue []int) {
-	i := len(p) - 1
-	for i >= 0 {
-		// skip rune with '*'
-		if p[i] == '*' {
-			i -= 2
+	// check if s is valid
+	i = 0
+	j := 0 // for pattern
+	for i < len(s) && j < len(pattern) {
+		fmt.Println(string(s[i]), string(pattern[j].value))
+		isRuneMatch := pattern[j].value == '.' || pattern[j].value == s[i]
+
+		// if rune with * and rune is match, move s, else move p
+		if pattern[j].isFlexible {
+			if isRuneMatch {
+				fmt.Println("move s")
+				i++
+			} else {
+				fmt.Println("move p")
+				j++
+			}
 			continue
 		}
 
-		for j := i; j >= 0; j-- {
-			if j == 0 {
-				checkQueue = append([]string{p[j : i+1]}, checkQueue...)
-				indexQueue = append([]int{j}, indexQueue...)
-				i -= (i - j + 1)
-				break
-			}
-			if p[j] != p[j-1] {
-				checkQueue = append([]string{p[j : i+1]}, checkQueue...)
-				indexQueue = append([]int{j}, indexQueue...)
-				i -= (i - j + 1)
-				break
+		dupEnd := i + pattern[j].count
+		if dupEnd > len(s) {
+			return false
+		}
+
+		// get fixed rune
+		dupStr := ""
+		if pattern[j].value == '.' {
+			dupStr = s[i:dupEnd]
+		} else {
+			for idx := 0; idx < pattern[j].count; idx++ {
+				dupStr += string(pattern[j].value)
 			}
 		}
+
+		fmt.Println("s[i:dupEnd]", s[i:dupEnd], "dupStr", dupStr)
+
+		// fixed rune check
+		if s[i:dupEnd] != dupStr {
+			return false
+		}
+
+		fmt.Println("move s+p")
+		i += pattern[j].count
+		j++
 	}
 
-	return
+	return i < len(s)
 }
-
-// func gapCheck(s string, p string) bool {
-// 	fmt.Println("gapCheck -----> ", "s: ", s, "p: ", p)
-// 	if len(s) == 0 {
-// 		return true
-// 	}
-// 	if len(p) == 0 {
-// 		return false
-// 	}
-
-// 	pivot := 0
-// 	t := '\n'
-// 	for _, r := range s {
-// 		if t != r {
-// 			pivot = strings.Index(p[pivot:], string(r)) + 1
-// 			if pivot == 0 {
-// 				return false
-// 			}
-// 			t = r
-// 		}
-// 	}
-
-// 	return true
-// }
