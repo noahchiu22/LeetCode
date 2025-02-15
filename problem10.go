@@ -1,96 +1,134 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+)
+
+type runeProps struct {
+	value      string
+	isFlexible bool
+}
 
 func isMatch(s string, p string) bool {
 	fmt.Println("s:", s, "p:", p)
-	type runeProps struct {
-		value      byte
-		isFlexible bool
-		count      int
-	}
 
 	pattern := []runeProps{}
 
 	// generate pattern
 	i := 0
 	for i < len(p) {
-		tempProps := runeProps{}
+		temp := runeProps{}
 		// if next rune is *
-		if i+1 < len(p) && p[i+1] == '*' {
-			tempProps.isFlexible = true
-		}
+		temp.isFlexible = i+1 < len(p) && p[i+1] == '*'
 
-		// check duplicate rune
-		if len(pattern) > 0 &&
-			p[i] == pattern[len(pattern)-1].value &&
-			tempProps.isFlexible == pattern[len(pattern)-1].isFlexible {
-			pattern[len(pattern)-1].count++
+		//  if last and current both are not flexible, add to last value
+		if len(pattern) > 0 && pattern[len(pattern)-1].isFlexible == temp.isFlexible && !temp.isFlexible {
+			pattern[len(pattern)-1].value += string(p[i])
 		} else {
-			// new rune
-			tempProps.value = p[i]
-			tempProps.count = 1
+			temp.value = string(p[i])
 
-			pattern = append(pattern, tempProps)
+			pattern = append(pattern, temp)
 		}
 
 		i++
 
 		// skip *
-		if tempProps.isFlexible {
+		if temp.isFlexible {
 			i++
 		}
 	}
 
-	for _, item := range pattern {
-		fmt.Println("value:", string(item.value), "notNeedToCount:", item.isFlexible, "count:", item.count)
+	a := match(s, pattern)
+	fmt.Println("result:", a)
+
+	return a == s
+}
+
+// let p try to match s
+func match(s string, p []runeProps) (transP string) {
+	fmt.Println("match start:", s, p)
+	if len(s) == 0 {
+		return ""
 	}
+	i := 0
+	j := 0
+	for i < len(s) && j < len(p) && len(transP) < len(s) {
+		// fmt.Printf("i: %v, j: %v, s[i]: %v, p[j]: %v\n", i, j, string(s[i]), p[j].value)
+		// if flexible
+		if p[j].isFlexible {
+			// find the next fixed value
+			nextFixedIndex := 0
+			for k := j; k < len(p); k++ {
+				if !p[k].isFlexible {
+					nextFixedIndex = k
+					break
+				}
+			}
 
-	// check if s is valid
-	i = 0
-	j := 0 // for pattern
-	for i < len(s) && j < len(pattern) {
-		fmt.Println(string(s[i]), string(pattern[j].value))
-		isRuneMatch := pattern[j].value == '.' || pattern[j].value == s[i]
+			index := windowSlide(i, s, p[nextFixedIndex].value)
 
-		// if rune with * and rune is match, move s, else move p
-		if pattern[j].isFlexible {
-			if isRuneMatch {
-				fmt.Println("move s")
+			// if flexible turn into not flexible(after window slide)
+			if index != -1 {
+				result := match(s[index:], p[nextFixedIndex+1:])
+				if s[:index]+result == s {
+					transP += s[i:index] + result
+					return
+				}
+			}
+
+			// check if match move s, else move p
+			if p[j].value == string(s[i]) || p[j].value == "." {
+				transP += string(s[i])
 				i++
 			} else {
-				fmt.Println("move p")
 				j++
 			}
-			continue
-		}
-
-		dupEnd := i + pattern[j].count
-		if dupEnd > len(s) {
-			return false
-		}
-
-		// get fixed rune
-		dupStr := ""
-		if pattern[j].value == '.' {
-			dupStr = s[i:dupEnd]
 		} else {
-			for idx := 0; idx < pattern[j].count; idx++ {
-				dupStr += string(pattern[j].value)
+			// check if match move s and p, else return
+			if checkTempMatch(i, s, p[j].value) {
+				transP += string(s[i : i+len(p[j].value)])
+				i += len(p[j].value)
+				j++
+			} else {
+				return
 			}
 		}
-
-		fmt.Println("s[i:dupEnd]", s[i:dupEnd], "dupStr", dupStr)
-
-		// fixed rune check
-		if s[i:dupEnd] != dupStr {
-			return false
-		}
-
-		fmt.Println("move s+p")
-		i += pattern[j].count
-		j++
 	}
 
-	return i < len(s)
+	fmt.Println(i, j)
+
+	return
+}
+
+func windowSlide(start int, s, p string) int {
+	// is not matchSwitch at the beginning
+	matchSwitch := false
+	i := start
+	for p != "" && i+len(p) < len(s) {
+		// false turn into true
+		if !matchSwitch && checkTempMatch(i, s, p) {
+			matchSwitch = true
+		}
+		// true turn into false
+		if matchSwitch && !checkTempMatch(i, s, p) {
+			return i + len(p) - 1
+		}
+		i++
+	}
+
+	return -1
+}
+
+func checkTempMatch(i int, s, p string) bool {
+	// if not flexible
+	isTempMatch := true
+	// check if temp text match
+	for k, r := range p {
+		if i+k > len(s)-1 || (r != '.' && string(s[i+k]) != string(r)) {
+			isTempMatch = false
+			break
+		}
+	}
+
+	return isTempMatch
 }

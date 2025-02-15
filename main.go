@@ -5,5 +5,5 @@ import (
 )
 
 func main() {
-	fmt.Println(isMatch("asssssdggggewq", "a*a*a*sssssa*dg*ewq"))
+	fmt.Println(isMatch("bbbba", ".*a*a"))
 }
