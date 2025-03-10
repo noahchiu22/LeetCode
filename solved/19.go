@@ -9,31 +9,27 @@ type ListNode struct {
 
 func removeNthFromEnd(head *ListNode, n int) *ListNode {
 	// count the length of the ListNode
-	length := 0
+	length := 1
 	temp := head
 	for temp.Next != nil {
 		temp = temp.Next
 		length++
 	}
 
-	// find the nth node from the end
+	// target node
 	targetNode := length - n + 1
+	if targetNode == 1 {
+		return head.Next
+	}
+
 	nthNode := 1
 	temp = head
-	for temp != nil {
-		if nthNode == targetNode {
-			if nthNode == 1 {
-				// first node
-				temp = temp.Next
-			} else if temp.Next != nil {
-				// middle node
-				temp.Next = temp.Next.Next
-			} else {
-				// last node
-				temp = nil
-				break
-			}
-			fmt.Println("nthNode", nthNode, temp.Val)
+	for temp.Next != nil {
+		if nthNode == targetNode-1 {
+			// middle node
+			temp.Next = temp.Next.Next
+			fmt.Println("nthNode", nthNode)
+			break
 		}
 		temp = temp.Next
 		nthNode++
