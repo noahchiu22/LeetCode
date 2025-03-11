@@ -2,10 +2,10 @@ package main
 
 import "fmt"
 
-type ListNode struct {
-	Val  int
-	Next *ListNode
-}
+// type ListNode struct {
+// 	Val  int
+// 	Next *ListNode
+// }
 
 func removeNthFromEnd(head *ListNode, n int) *ListNode {
 	// count the length of the ListNode
