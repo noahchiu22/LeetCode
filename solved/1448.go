@@ -8,10 +8,10 @@ type TreeNode struct {
 
 func goodNodes(root *TreeNode) int {
 
-	return dfs(root, root.Val)
+	return dfs1448(root, root.Val)
 }
 
-func dfs(root *TreeNode, max int) (count int) {
+func dfs1448(root *TreeNode, max int) (count int) {
 	if root == nil {
 		return 0
 	}
@@ -23,8 +23,8 @@ func dfs(root *TreeNode, max int) (count int) {
 	}
 
 	// recursive both leaves
-	count += dfs(root.Left, max)
-	count += dfs(root.Right, max)
+	count += dfs1448(root.Left, max)
+	count += dfs1448(root.Right, max)
 
 	return count
 }
